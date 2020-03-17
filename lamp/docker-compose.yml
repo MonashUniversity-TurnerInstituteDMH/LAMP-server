@@ -1,0 +1,52 @@
+version: '3.7'
+    services:
+      server:
+        image: 'docker.pkg.github.com/bidmcdigitalpsychiatry/lamp-server/lamp-server:latest'
+        environment:
+         - NODE_ENV=production
+         - PORT=3000
+         - DB_USERNAME=
+         - DB_PASSWORD=
+         - DB_SERVER=legacydb
+         - DB_PORT=1433
+         - DB_NAME=LAMP
+         - DB_KEY=
+         - ROOT_KEY=
+         - ROOT_PASSWORD=
+        networks:
+          - public
+          - db-api
+        deploy:
+          mode: replicated
+          labels:
+            traefik.enable: 'true'
+            traefik.docker.network: 'public'
+            traefik.http.routers.lamp.entryPoints: 'websecure'
+            traefik.http.routers.lamp.rule: 'Host(`mydomain.com`)'
+            traefik.http.routers.lamp.tls.certresolver: 'default'
+            traefik.http.services.lamp.loadbalancer.server.port: 3000
+          placement:
+            constraints:
+              - node.role == manager
+      legacydb:
+        image: microsoft/mssql-server-linux:2017-latest
+        volumes:
+          - legacydb:/var/opt/mssql
+        environment:
+          ACCEPT_EULA: 'yes'
+          MSSQL_PID: 'Developer'
+          SA_USERNAME: 
+          SA_PASSWORD: 
+        networks:
+          - db-api
+        deploy:
+          mode: replicated
+          placement:
+            constraints:
+              - node.role == manager
+    networks:
+      public:
+        external: true
+      db-api:
+    volumes:
+      legacydb:
