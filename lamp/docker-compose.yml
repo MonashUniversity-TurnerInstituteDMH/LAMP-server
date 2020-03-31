@@ -14,7 +14,7 @@ services:
       - ROOT_KEY=
       - ROOT_PASSWORD=
     networks:
-      - public
+      - my-attachable-overlay
       - db-api
     deploy:
       mode: replicated
@@ -45,7 +45,7 @@ services:
         constraints:
           - node.role == manager
 networks:
-  public:
+  my-attachable-overlay:
     external: true
   db-api:
 volumes:
