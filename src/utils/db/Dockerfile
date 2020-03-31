@@ -1,8 +1,8 @@
 FROM microsoft/mssql-server-linux:2017-latest
 ENV ACCEPT_EULA=Y
 ENV MSSQL_PID=Developer
-ENV SA_USERNAME=TEST
-ENV SA_PASSWORD=TEST
+ENV SA_USERNAME=
+ENV SA_PASSWORD=
 ENV PATH="/opt/mssql/bin/:/opt/mssql-tools/bin/:${PATH}"
 COPY *.sql /
 RUN sqlservr --accept-eula & sleep 10 \
