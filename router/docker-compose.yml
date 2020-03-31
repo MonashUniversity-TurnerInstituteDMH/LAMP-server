@@ -19,7 +19,7 @@ services:
       - "--certificatesResolvers.default.acme.tlsChallenge=true"  
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
-       - "traefik-ssl:/data/"
+      - "traefik-ssl:/data/"
     ports:
       - target: 80
         protocol: tcp
