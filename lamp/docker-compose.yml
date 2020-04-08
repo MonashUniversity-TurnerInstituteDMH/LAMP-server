@@ -2,9 +2,10 @@ version: '3.7'
 services:
   server:
     image: 'docker.pkg.github.com/bidmcdigitalpsychiatry/lamp-server/lamp-server:latest'
+    ports:
+      - 443:443
     environment:
-      - NODE_ENV=production
-      - PORT=3000
+      - PORT=443
       - DB_USERNAME=
       - DB_PASSWORD=
       - DB_SERVER=legacydb
