@@ -1,0 +1,97 @@
+version: '3.7'
+services:
+    VSCode:
+        image: codercom/code-server:latest
+        environment:
+            PASSWORD: 
+        expose:
+          - "8080"
+          - "3000"
+          - "3001"
+        volumes:
+          - /data/vscode_user:/home/coder/project
+        restart: always
+        networks:
+            - public
+        deploy:
+            mode: replicated
+            labels:
+                traefik.enable: 'true'
+                traefik.http.routers.vscode1.entryPoints: 'websecure'
+                traefik.http.routers.vscode1.rule: 'Host(`vscode.example.com`)'
+                traefik.http.routers.vscode1.tls.certresolver: 'default'
+                traefik.http.routers.vscode1.service: 'vscode1'
+                traefik.http.services.vscode1.loadbalancer.server.port: 8080
+                traefik.http.routers.vscode2.entryPoints: 'websecure'
+                traefik.http.routers.vscode2.rule: 'Host(`p3000.vscode.example.com`)'
+                traefik.http.routers.vscode2.tls.certresolver: 'default'
+                traefik.http.routers.vscode2.service: 'vscode2'
+                traefik.http.services.vscode2.loadbalancer.server.port: 3000
+                traefik.http.routers.vscode3.entryPoints: 'websecure'
+                traefik.http.routers.vscode3.rule: 'Host(`p3001.vscode.example.com`)'
+                traefik.http.routers.vscode3.tls.certresolver: 'default'
+                traefik.http.routers.vscode3.service: 'vscode3'
+                traefik.http.services.vscode3.loadbalancer.server.port: 3001
+            placement:
+                constraints:
+                    - node.hostname == node-02.example.com
+    RStudio:
+        image: rocker/rstudio:latest
+        volumes: 
+            - /data/studio_user:/home/rstudio/shared
+            - rsession:/home/rstudio/.rstudio
+            - rsitelibs:/usr/local/lib/R/site-library
+        environment:
+            USERID: 500
+            GROUPID: 500
+            ROOT: "TRUE"
+            PASSWORD: 
+        restart: always
+        networks:
+            - public
+        deploy:
+            mode: replicated
+            labels:
+                traefik.enable: 'true'
+                traefik.http.routers.rstudio.entryPoints: 'websecure'
+                traefik.http.routers.rstudio.rule: 'Host(`rstudio.example.com`)'
+                traefik.http.routers.rstudio.tls.certresolver: 'default'
+                traefik.http.services.rstudio.loadbalancer.server.port: 8787
+            placement:
+                constraints:
+                    - node.hostname == node-02.example.com
+    Jupyter:
+        image: jupyter/scipy-notebook
+        command: "start-notebook.sh --NotebookApp.password=sha1:"
+        volumes:
+            - /data/jupyter_user:/home/jupyter/shared
+        user: root
+        environment:
+            NB_USER: 'jupyter'
+            NB_UID: 500
+            NB_GID: 500
+            JUPYTER_ENABLE_LAB: 'yes'
+            RESTARTABLE: 'yes'
+            GRANT_SUDO: 'yes'
+            CHOWN_HOME: 'yes'
+        restart: always
+        networks:
+            - public
+        deploy:
+            mode: replicated
+            labels:
+                traefik.enable: 'true'
+                traefik.http.routers.jupyter_ryan.entryPoints: 'websecure'
+                traefik.http.routers.jupyter_ryan.rule: 'Host(`jupyter.example.com`)'
+                traefik.http.routers.jupyter_ryan.tls.certresolver: 'default'
+                traefik.http.services.jupyter_ryan.loadbalancer.server.port: 8888
+            placement:
+                constraints:
+                    - node.hostname == node-02.example.com
+volumes:
+    rsession:
+    rsitelibs:
+    rlibs:
+networks:
+    public:
+        external: true

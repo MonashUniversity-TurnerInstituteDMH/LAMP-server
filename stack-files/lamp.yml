@@ -1,0 +1,68 @@
+version: '3.7'
+services:
+    server:
+        image: 'docker.pkg.github.com/bidmcdigitalpsychiatry/lamp-server/lamp-server:latest'
+        environment:
+         - HTTPS=off
+         - DB_USERNAME=sa
+         - DB_PASSWORD=
+         - DB_SERVER=database
+         - DB_PORT=1433
+         - DB_NAME=LAMP
+         - DB_KEY=
+         - ROOT_KEY=
+         - ROOT_PASSWORD=
+        networks:
+          - public
+        deploy:
+            mode: replicated
+            labels:
+                traefik.enable: 'true'
+                traefik.http.routers.lamp_server.entryPoints: 'websecure'
+                traefik.http.routers.lamp_server.rule: 'Host(`api.example.com`)'
+                traefik.http.routers.lamp_server.tls.certresolver: 'default'
+                traefik.http.services.lamp_server.loadbalancer.server.port: 3000
+            placement:
+                constraints:
+                    - node.role == manager
+    database:
+        image: apache/couchdb:latest
+        volumes:
+            - /data/couchdb:/opt/couchdb/data
+        networks:
+            - public
+        environment:
+            - COUCHDB_USER=admin
+            - COUCHDB_PASSWORD=
+        deploy:
+            mode: replicated
+            labels:
+                traefik.enable: 'true'
+                traefik.http.routers.lamp_db.entryPoints: 'websecure'
+                traefik.http.routers.lamp_db.rule: 'Host(`db.example.com`)'
+                traefik.http.routers.lamp_db.tls.certresolver: 'default'
+                traefik.http.services.lamp_db.loadbalancer.server.port: 5984
+            placement:
+                constraints:
+                    - node.role == manager
+    legacydb:
+        image: microsoft/mssql-server-linux:2017-latest
+        volumes:
+            - legacydb:/var/opt/mssql
+        environment:
+            ACCEPT_EULA: 'yes'
+            SA_PASSWORD: 
+            MSSQL_PID: 'Developer'
+        networks:
+            - public
+        deploy:
+            mode: replicated
+            placement:
+                constraints:
+                    - node.role == manager
+networks:
+    public:
+        external: true
+volumes:
+    database:
+    legacydb:
